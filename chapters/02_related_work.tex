@@ -1,0 +1,49 @@
+% !TeX root = ../main.tex
+
+\chapter{Related Work}\label{chapter:related}
+
+\section{Neural radiance fields}
+
+\ac{NeRF}~\parencite{mildenhall2020nerf} introduced the idea of representing a
+scene as a continuous volumetric function parameterized by a small MLP and
+rendered by emission–absorption ray marching. Many follow-ups have
+addressed its main limitations: training time
+(InstantNGP~\parencite{mueller2022instant}), unbounded scenes
+(Mip-NeRF~360), and editability.
+
+\section{3D Gaussian Splatting}
+
+\ac{3DGS}~\parencite{kerbl3Dgaussians} replaces the implicit MLP with an
+explicit set of anisotropic 3D Gaussians, each carrying an opacity and
+view-dependent \ac{SH} colour. A tile-based differentiable rasterizer
+projects each Gaussian to screen space and composites them
+back-to-front. The representation trains in minutes, renders in real time,
+and serializes to a compact point cloud, which makes it attractive for
+downstream tasks.
+
+\section{Editing radiance fields}
+
+Inserting or removing content in NeRF/3DGS scenes has been approached in
+three broad ways:
+
+\begin{description}
+  \item[Latent editing.] Re-train or fine-tune the radiance field with
+    additional supervision (e.g.\ text-guided diffusion) until the desired
+    edit appears. Powerful but slow and unstable.
+  \item[Hybrid representations.] Combine the radiance field with an
+    explicit mesh or signed distance function so that classical mesh
+    insertion tools work directly.
+  \item[Compositing.] Treat the host scene as a passive background and
+    render the inserted object separately, then composite. This is the
+    route taken by InsertGS because it preserves the host 3DGS scene
+    untouched.
+\end{description}
+
+\section{Image-based lighting}
+
+Capturing real-world illumination as an environment map for shading virtual
+objects dates back to Debevec~\parencite{debevec1998rendering}. The main
+challenge in our setting is that the “environment” is not a chrome ball but
+a learned 3DGS reconstruction; we therefore need a way to rasterize the
+Gaussian cloud into a cubemap that is geometrically consistent with the
+captured room.

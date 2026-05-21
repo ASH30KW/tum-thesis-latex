@@ -1,0 +1,68 @@
+% !TeX root = ../main.tex
+
+\chapter{Introduction}\label{chapter:introduction}
+
+\section{Motivation}
+
+Photorealistic capture of real-world environments has progressed rapidly in
+the last few years. \ac{NeRF}-based methods first demonstrated that a scene
+can be reconstructed implicitly from a handful of posed photographs, and
+\ac{3DGS}~\parencite{kerbl3Dgaussians} has since become the dominant
+practical representation for high-fidelity novel view synthesis: rendering
+is real-time, training takes minutes instead of hours, and the output is an
+explicit point cloud of anisotropic Gaussians that can be streamed to a
+browser.
+
+A natural next question is whether scenes captured this way can also be
+\emph{edited}. Concretely: given a 3DGS reconstruction of a real room, can
+we insert a new mesh-based object --- a chair, a lamp, an appliance --- so
+that the result looks like it was always there? This use case is central to
+interior design, e-commerce visualization, and game-asset content creation,
+but the implicit, per-Gaussian representation does not expose the surface
+geometry, surface materials, or environment lighting that classical
+compositing relies on.
+
+\section{Problem statement}
+
+This thesis investigates one concrete instance of the problem: insertion of
+a known textured mesh into a known 3DGS room, such that
+\begin{enumerate}
+  \item shading on the inserted object is consistent with the room's
+        captured illumination,
+  \item soft contact shadows are produced on the floor,
+  \item rendering remains compatible with the existing real-time 3DGS
+        viewers and does not require retraining the host scene.
+\end{enumerate}
+
+\section{Contributions}
+
+The main contributions of this work, packaged as the \emph{InsertGS}
+pipeline, are:
+
+\begin{itemize}
+  \item A GPU rasterizer (\texttt{gs\_to\_cubemap\_gsplat.py}) that converts
+        a 3DGS room into a six-face cubemap using proper \ac{EWA}
+        splatting, suitable for \ac{IBL}.
+  \item A \ac{PBR} rendering stage in Blender that consumes the cubemap as
+        an environment map and produces shaded RGB plus alpha and shadow
+        passes for the inserted mesh.
+  \item A compositing module that places the rendered object back into
+        novel 3DGS viewpoints while preserving depth ordering with the
+        surrounding splats.
+  \item A unified Python entry point (\texttt{main.py}) exposing the
+        pipeline both as a \ac{CLI} for batch experiments and as a
+        \ac{GUI} dashboard for interactive use, plus a lightweight
+        SuperSplat-based web viewer for inspecting \ac{SPZ} and \ac{PLY}
+        scenes in the browser.
+\end{itemize}
+
+\section{Outline}
+
+\Cref{chapter:related} reviews 3DGS, NeRF-based editing, and prior work on
+inserting objects into captured radiance fields. \Cref{chapter:method}
+develops the pipeline in three stages: cubemap extraction, PBR rendering,
+and compositing. \Cref{chapter:implementation} describes the engineering
+artefacts: the case-based directory layout, the Gradio dashboard, and the
+SPZ web viewer. \Cref{chapter:results} reports qualitative and quantitative
+results on a curated set of indoor scenes, and
+\Cref{chapter:conclusion} summarizes findings and limitations.

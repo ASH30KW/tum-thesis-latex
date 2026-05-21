@@ -1,0 +1,36 @@
+% !TeX root = ../main.tex
+
+\chapter{Conclusion and Future Work}\label{chapter:conclusion}
+
+\section{Summary}
+
+This thesis introduced InsertGS, a three-stage pipeline for inserting
+mesh-based objects into 3D Gaussian Splatting reconstructions of indoor
+scenes. By extracting an IBL cubemap from the host 3DGS scene with proper
+EWA splatting, rendering the inserted object under that environment in
+Blender, and depth-gated alpha compositing into novel views, the system
+produces insertions whose shading and contact shadows are consistent with
+the captured room, while leaving the host scene unchanged and compatible
+with existing real-time 3DGS viewers.
+
+\section{Limitations}
+
+\begin{itemize}
+  \item \textbf{Static illumination.} The cubemap is captured once per
+        insertion point; moving the object across a room with strongly
+        varying lighting requires re-baking.
+  \item \textbf{Geometry from Gaussians.} The host scene exposes no
+        explicit surfaces, so contact shadows rely on a manually placed
+        ground plane.
+  \item \textbf{Single bounce.} The inserted object does not reflect light
+        back onto the room; this would require a differentiable round-trip
+        through the Gaussian representation.
+\end{itemize}
+
+\section{Future work}
+
+A natural extension is to learn a lightweight surface proxy alongside the
+3DGS scene so that the ground plane (and other receivers) can be inferred
+automatically. A second direction is to back-propagate the inserted
+object's contribution into a small set of Gaussians around it, enabling
+mutual illumination without re-training the entire host scene.
