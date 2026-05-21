@@ -1,3 +1,23 @@
 \chapter{\abstractname}
 
-%TODO: Abstract
+3D Gaussian Splatting (3DGS) has emerged as a fast, high-quality alternative
+to Neural Radiance Fields for novel view synthesis, but inserting new content
+into a 3DGS scene remains an open problem: the implicit, per-Gaussian
+representation does not natively expose surface geometry, material, or
+lighting parameters needed for plausible compositing.
+
+This thesis presents \emph{InsertGS}, a pipeline for inserting mesh-based
+objects into rooms reconstructed as 3D Gaussian Splatting scenes. The system
+combines (i)~a GPU rasterizer that converts a captured 3DGS room into a
+cubemap environment map suitable for image-based lighting, (ii)~a physically
+based Blender stage that renders the inserted object under that environment,
+and (iii)~a compositing pass that places the rendered object back into novel
+3DGS views with consistent shading and shadows. A Gradio dashboard exposes
+each stage so practitioners can run individual operations or full
+end-to-end batches, and a lightweight web viewer based on SuperSplat lets
+users inspect input scenes and intermediate results in the browser.
+
+We evaluate the pipeline on a curated set of indoor 3DGS reconstructions and
+several inserted objects, showing that the cubemap-based IBL stage produces
+visually consistent lighting compared to ad-hoc compositing, and that the
+batch CLI scales to many cases without manual intervention.

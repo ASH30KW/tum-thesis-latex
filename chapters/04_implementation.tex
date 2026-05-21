@@ -1,0 +1,47 @@
+% !TeX root = ../main.tex
+
+\chapter{Implementation}\label{chapter:implementation}
+
+\section{Repository layout}
+
+The InsertGS code is organized as a single Python package with three
+external entry points:
+
+\begin{description}
+  \item[\texttt{main.py}] Unified CLI and Gradio dashboard. With no
+    arguments it serves the dashboard on port 7860; with a subcommand
+    (\texttt{list}, \texttt{info}, \texttt{batch}, \texttt{bg},
+    \texttt{compose}) it runs the corresponding pipeline step.
+  \item[\texttt{tools/serve\_spz.py}] A lightweight web server that hosts
+    \ac{SPZ} scenes together with the SuperSplat editor and viewer, so
+    captured rooms can be inspected directly in the browser.
+  \item[\texttt{tools/spz\_to\_ply.py}] An \ac{SPZ} $\to$ 3DGS \ac{PLY}
+    decoder, used both as a standalone CLI and as an imported helper.
+\end{description}
+
+\section{Pipeline modules}
+
+The pipeline stages from \Cref{chapter:method} live under
+\texttt{src/scripts/}: cubemap extraction
+(\texttt{gs\_to\_cubemap\_gsplat.py}), Blender PBR rendering
+(\texttt{render\_chair.py} and a Cycles wrapper), and the compositing pass.
+Inputs --- room PLY files and object meshes --- are gathered under
+\texttt{src/inputs/rooms/} and \texttt{src/inputs/objects/}, while each
+experiment writes its outputs into \texttt{src/cases/}\textit{name}\,/.
+
+\section{Environment}
+
+InsertGS runs in a dedicated conda environment named \texttt{InsertGS}.
+The Python entry point auto-injects \texttt{CUDA\_HOME} pointing at the
+conda prefix so that \texttt{gsplat} compiles its CUDA extensions on
+demand. Blender is invoked out-of-process from
+\texttt{/home/ai/bin/blender}, which decouples the rendering Python from
+the rest of the pipeline.
+
+\section{Web viewer}
+
+A thin HTML/JS page (\texttt{viewer.html}) acts as a scene picker for the
+\texttt{serve\_spz.py} server. Selecting a scene opens it in the bundled
+SuperSplat viewer; SPZ scenes are decoded on the fly when needed. This is
+used both during dataset curation and to share intermediate results
+without redistributing the heavyweight PLY files.

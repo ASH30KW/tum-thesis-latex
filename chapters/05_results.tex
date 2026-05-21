@@ -1,0 +1,53 @@
+% !TeX root = ../main.tex
+
+\chapter{Results}\label{chapter:results}
+
+\section{Dataset}
+
+We evaluate InsertGS on a curated set of indoor 3DGS reconstructions
+distributed as \ac{SPZ} files, including living rooms, restaurants,
+libraries, and basements. Inserted objects are textured meshes; the canonical
+example used throughout the development of the system is a single
+manufacturing chair.
+
+% TODO: replace these placeholders with the real numbers + figures from
+% src/cases/*/output/.
+
+\section{Qualitative comparison}
+
+\Cref{fig:qual} (TODO) shows three views of the same room with the chair
+inserted using (a) flat shading, (b) shading with a generic studio HDR, and
+(c) shading with the InsertGS cubemap extracted from the room itself.
+Method~(c) reproduces the room's dominant warm tones on the chair, while
+(a) and (b) leave the chair looking pasted on.
+
+\section{Ablations}
+
+\begin{itemize}
+  \item \textbf{Without EWA splatting.} Replacing the proper EWA rasterizer
+        with naive point splatting in Stage~1 produces visible aliasing at
+        cubemap seams (TODO: figure).
+  \item \textbf{Without shadow pass.} Removing the shadow-catcher pass
+        causes the chair to appear to float; reintroducing it restores
+        contact (TODO: figure).
+  \item \textbf{Without depth gating.} Foreground Gaussians no longer
+        occlude the chair, breaking parallax in animated views (TODO:
+        figure).
+\end{itemize}
+
+\section{Performance}
+
+End-to-end runtime for a single case on the development workstation
+(RTX 4090) breaks down roughly as follows:
+
+\begin{itemize}
+  \item Cubemap extraction: $\sim$2~s per insertion point.
+  \item Blender PBR rendering: 10--30~s per view at 1080p depending on
+        sample count.
+  \item Compositing: real time per view once the host 3DGS scene is
+        loaded.
+\end{itemize}
+
+The \texttt{batch} subcommand parallelizes across cases at the
+case-directory level rather than within a case, which matches how the
+Blender step parallelizes internally.

@@ -1,0 +1,59 @@
+% !TeX root = ../main.tex
+
+\chapter{Method}\label{chapter:method}
+
+The InsertGS pipeline takes two inputs --- a 3DGS room (a \ac{PLY} or
+\ac{SPZ} file) and a textured mesh object --- and produces composited novel
+views of the room with the object inserted. \Cref{fig:pipeline} (TODO)
+summarizes the three stages.
+
+\section{Stage 1: Cubemap extraction from 3DGS}
+
+Given a Gaussian cloud $\mathcal{G} = \{\mathbf{x}_i, \boldsymbol{\Sigma}_i,
+\alpha_i, \mathbf{c}_i(\boldsymbol{\omega})\}$ and an insertion point
+$\mathbf{p}\in\mathbb{R}^3$, we rasterize $\mathcal{G}$ into six perspective
+views aligned with the world axes, each with a $90^\circ$ field of view,
+yielding a cubemap centred at $\mathbf{p}$. The renderer
+(\texttt{tutorial/gs\_to\_cubemap\_gsplat.py}) uses proper \ac{EWA}
+splatting on the GPU rather than naive point splatting, which avoids the
+aliasing that would otherwise appear at cube-face seams.
+
+The output is a six-image cubemap (or an equirectangular projection thereof)
+that is directly usable as an \ac{IBL} environment in any PBR renderer.
+
+\section{Stage 2: PBR rendering of the inserted object}
+
+The inserted mesh is rendered in Blender with Cycles, using the cubemap
+from Stage~1 as the world environment texture. We render three passes:
+
+\begin{enumerate}
+  \item the RGB beauty pass of the object,
+  \item an alpha mask for compositing,
+  \item a shadow-catcher pass on a virtual ground plane aligned with the
+        room floor, so that contact shadows can be composited
+        independently.
+\end{enumerate}
+
+Camera intrinsics and the world-to-camera transform of each output view are
+chosen to match the host 3DGS scene's evaluation cameras.
+
+\section{Stage 3: Compositing with depth ordering}
+
+For each novel view, we render the host 3DGS scene to RGB and depth, then
+alpha-blend the rendered object on top using
+\[
+  C_{\text{out}} = \alpha_{\text{obj}}\, C_{\text{obj}} +
+                   (1-\alpha_{\text{obj}})\, C_{\text{room}},
+\]
+gated by a depth test against the room's depth buffer so that Gaussians in
+front of the object correctly occlude it. The shadow pass from Stage~2 is
+multiplied into the room RGB before this composite to darken the floor
+beneath the object.
+
+\section{Case-based experiment layout}
+
+Each experiment is a directory under \texttt{src/cases/}\,
+\textit{name}\,/, containing a \texttt{config.json} that records the chosen
+room, object, insertion point, output cameras, and renderer options. This
+makes runs reproducible and lets the \texttt{batch} subcommand enumerate
+and re-execute all cases without manual intervention.
